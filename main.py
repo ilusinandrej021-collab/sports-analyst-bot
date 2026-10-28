@@ -12,11 +12,38 @@ if not TOKEN:
 API = f"https://api.telegram.org/bot{TOKEN}/"
 
 
-def send_message(chat_id, text):
-    data = urllib.parse.urlencode({
+SPORTS_KEYBOARD = {
+    "keyboard": [
+        [
+            {"text": "🏀 Баскетбол"},
+            {"text": "🏐 Волейбол"}
+        ],
+        [
+            {"text": "🎾 Теннис"},
+            {"text": "🎱 Снукер"}
+        ],
+        [
+            {"text": "🎮 Dota 2"},
+            {"text": "🎯 CS2"}
+        ]
+    ],
+    "resize_keyboard": True
+}
+
+
+def send_message(chat_id, text, keyboard=None):
+    payload = {
         "chat_id": chat_id,
         "text": text
-    }).encode("utf-8")
+    }
+
+    if keyboard:
+        payload["reply_markup"] = json.dumps(
+            keyboard,
+            ensure_ascii=False
+        )
+
+    data = urllib.parse.urlencode(payload).encode("utf-8")
 
     request = urllib.request.Request(
         API + "sendMessage",
@@ -29,6 +56,7 @@ def send_message(chat_id, text):
 
 def main():
     print("Спортивный аналитик-бот запущен!", flush=True)
+
     offset = None
 
     while True:
@@ -53,28 +81,48 @@ def main():
                 offset = update["update_id"] + 1
 
                 message = update.get("message")
+
                 if not message or "text" not in message:
                     continue
 
                 chat_id = message["chat"]["id"]
                 text = message["text"].strip()
 
-                if text == "/start":
+                if text == "/start" or text == "📋 Меню":
                     send_message(
                         chat_id,
                         "Привет! Я спортивный аналитик.\n\n"
-                        "Выбери вид спорта:\n"
-                        "🏀 Баскетбол\n"
-                        "🏐 Волейбол\n"
-                        "🎾 Теннис\n"
-                        "🎱 Снукер\n"
-                        "🎮 Dota 2\n"
-                        "🔫 CS2"
+                        "Выбери вид спорта кнопкой ниже:",
+                        SPORTS_KEYBOARD
                     )
+
+                elif text in [
+                    "🏀 Баскетбол",
+                    "🏐 Волейбол",
+                    "🎾 Теннис",
+                    "🎱 Снукер",
+                    "🎮 Dota 2",
+                    "🎯 CS2"
+                ]:
+                    sport = text
+
+                    send_message(
+                        chat_id,
+                        f"Ты выбрал: {sport}\n\n"
+                        "Раздел находится в разработке. "
+                        "Следующим этапом добавим поиск матчей "
+                        "и статистику.\n\n"
+                        "Чтобы вернуться к выбору спорта, "
+                        "нажми /start.",
+                        SPORTS_KEYBOARD
+                    )
+
                 else:
                     send_message(
                         chat_id,
-                        "Напиши /start, чтобы открыть меню."
+                        "Выбери вид спорта с помощью кнопок "
+                        "или напиши /start.",
+                        SPORTS_KEYBOARD
                     )
 
         except Exception as error:
