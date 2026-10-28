@@ -28,7 +28,7 @@ def send_message(chat_id, text):
 
 
 def main():
-    print("Спортивный аналитик-бот запущен!")
+    print("Спортивный аналитик-бот запущен!", flush=True)
     offset = None
 
     while True:
@@ -43,6 +43,11 @@ def main():
 
             with urllib.request.urlopen(url, timeout=35) as response:
                 data = json.loads(response.read().decode("utf-8"))
+
+            if not data.get("ok"):
+                print(f"Ошибка Telegram API: {data}", flush=True)
+                time.sleep(3)
+                continue
 
             for update in data.get("result", []):
                 offset = update["update_id"] + 1
@@ -67,8 +72,15 @@ def main():
                         "🔫 CS2"
                     )
                 else:
-                    send_message(chat_id, "Напиши /start, чтобы открыть меню.")
+                    send_message(
+                        chat_id,
+                        "Напиши /start, чтобы открыть меню."
+                    )
 
         except Exception as error:
-            print(f"Ошибка: {error}")
+            print(f"Ошибка: {error}", flush=True)
             time.sleep(3)
+
+
+if __name__ == "__main__":
+    main()
