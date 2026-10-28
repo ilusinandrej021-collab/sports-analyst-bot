@@ -39,7 +39,7 @@ def main():
                 params["offset"] = offset
 
             query = urllib.parse.urlencode(params)
-            url = f"{API}/getUpdates?{query}"
+            url = f"{API}getUpdates?{query}"
 
             with urllib.request.urlopen(url, timeout=35) as response:
                 data = json.loads(response.read().decode("utf-8"))
